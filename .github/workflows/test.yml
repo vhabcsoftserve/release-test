@@ -1,0 +1,25 @@
+name: Run tests
+
+on:
+  push:
+    paths:
+      - "src/**"
+    branches:
+      - "*"
+      - "!main"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: 2.7
+        bundler-cache: true
+    - name: Run tests
+      env:
+        WORKATO_CONNECTOR_MASTER_KEY: ${{ secrets.WORKATO_CONNECTOR_MASTER_KEY }}
+      run: bundle exec rspec
