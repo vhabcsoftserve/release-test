@@ -1,0 +1,45 @@
+#!/usr/bin/env ruby
+
+require_relative '../shared/constants'
+require_relative '../shared/workato_api'
+
+
+EMAIL = Constants::LOCAL_SETTINGS['email']
+API_KEY = Constants::LOCAL_SETTINGS['api_key']
+RECIPE_ID = 1 # our top level testing recipe ID
+
+def uncached_jobs(recipe_id)
+  api = WorkatoAPI.new(EMAIL, API_KEY)
+
+  [
+    count: api.jobs(recipe_id).dig('job_count'),
+    failed_count: api.jobs(recipe_id).dig('job_failed_count')
+  ]
+end
+
+initial_jobs = uncached_jobs(RECIPE_ID)
+
+# run tests
+
+sleep_interval = 20
+sleep_upper_limit = 120
+retries = 0
+
+loop do
+  sleep(sleep_interval)
+
+  new_jobs = uncached_jobs(RECIPE_ID)
+
+  if initial_jobs[:count] != new_jobs[:count] &&
+    break
+  end
+
+  raise "Failed after retrying #{retries} times." if retries > 20
+
+  prev_job_count = api.jobs.dig('job_count')
+  prev_job_failed_count = api.jobs.dig('job_failed_count')
+
+  sleep_interval *= 2 if sleep_interval < sleep_upper_limit
+  retries += 1
+end
+# if job count changed

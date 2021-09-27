@@ -1,0 +1,20 @@
+#!/usr/bin/env ruby
+
+require 'yaml'
+require_relative './shared/constants'
+if ARGV.to_a.size < 2
+  puts 'Aborting. Specify action as first argument, connector name as second argument'
+  exit(1)
+end
+
+action = ARGV.to_a[0]
+connector_name = ARGV.to_a[1]
+args = ARGV[2..-1].empty? ? '' : ARGV[2..-1].join(' ')
+
+command = <<-EOS.squeeze(" ")
+  bundle exec workato exec #{action} --connector src/#{connector_name}/connector.rb --connection #{connector_name} #{args}
+EOS
+
+puts "Running #{command}"
+
+system(command)

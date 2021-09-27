@@ -1,0 +1,23 @@
+#!/usr/bin/env ruby
+
+require_relative '../shared/constants'
+require_relative '../shared/workato_api'
+
+Dir['src/*'].each do |dir_path|
+  connector_args = <<-EOS.gsub("\n", ' ').squeeze(' ')
+    --connector   #{dir_path}/connector.rb
+    --logo        #{dir_path}/logo.png
+    --description #{dir_path}/description.md
+  EOS
+
+  merge_commit_hash = `git log -n 1 --pretty=format:'%H'`
+  pull_request_url = `echo ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/#{merge_commit_hash}`.chomp
+
+  command = <<-EOS.squeeze(" ")
+    bundle exec workato push #{ARGV.first} #{connector_args} --notes="#{pull_request_url}"
+  EOS
+
+  puts "Running #{command}"
+
+  system(command)
+end

@@ -1,0 +1,71 @@
+#!/usr/bin/env ruby
+
+require_relative './shared/constants'
+require_relative './shared/workato_api'
+require_relative './shared/decryptor'
+require 'net/http'
+require 'uri'
+require 'optparse'
+
+@options = {}
+
+parser = OptionParser.new do |opts|
+  opts.banner = 'Usage: release [options]'
+  opts.on('-h', '--help', 'Display help') do
+    puts opts
+    exit 1
+  end
+
+  opts.on('-uURL', '--url=URL', <<~EOS) do |url|
+    Specify webhook url or set it as `release_uri' in settings.yaml.enc
+    EOS
+    @options[:url] = url
+  end
+
+  opts.on('-mID', '--manifest-id=ID', <<~EOS) do |id|
+    Specify manifest ID or set it as `manifest_id' in settings.yaml.enc
+    EOS
+    @options[:manifest_id] = id
+  end
+
+  opts.on('-nEMAIL', '--notify=EMAIL', <<~EOS) do |email|
+    Specify email to notify release status or set it as `notify_email' in settings.yaml.enc
+    EOS
+    @options[:email] = email
+  end
+
+  opts.on('-tTYPE', '--type=TYPE', <<~EOS) do |type|
+    Release type. One of the following #{Constants::RELEASE_TYPES.join(', ')}"
+    EOS
+    @options[:release] = type
+  end
+end
+
+decrypted = Decryptor.decrypt
+
+@options[:url] ||= decrypted.dig('release', 'webhook_url')
+@options[:email] ||= decrypted.dig('release', 'email')
+@options[:manifest_id] ||= decrypted.dig('release', 'manifest_id')
+
+parser.parse!
+parser.parse!(%w[--help]) if @options[:release].nil?
+
+unless Constants::RELEASE_TYPES.include?(@options[:release])
+  puts "Wrong release type! Specify one of the following: #{Constants::RELEASE_TYPES.join(', ')}."
+  exit 1
+end
+
+unless @options[:url] =~ URI::regexp
+  puts "URL #{@options[:url]} is invalid."
+  exit 1
+end
+
+unless @options[:email] =~ URI::MailTo::EMAIL_REGEXP
+  puts "Email #{@options[:email]} is invalid."
+  exit 1
+end
+
+body = { notify_email: @options[:email], release_type: @options[:release] }.to_json
+response = Net::HTTP.post(URI(@options[:url]), body, 'Content-Type': 'application/json')
+
+puts response.body

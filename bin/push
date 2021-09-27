@@ -1,0 +1,30 @@
+#!/usr/bin/env ruby
+
+require_relative './shared/constants'
+require_relative './shared/workato_api'
+
+ENV['WORKATO_API_EMAIL'] = Constants::LOCAL_SETTINGS['email']
+ENV['WORKATO_API_TOKEN'] = Constants::LOCAL_SETTINGS['api_key']
+
+if ARGV.to_a.empty?
+  puts 'Aborting. Specify connector name as first argument'
+  exit(1)
+end
+
+api = WorkatoAPI.new(ENV['WORKATO_API_EMAIL'], ENV['WORKATO_API_TOKEN'])
+connector_name = ARGV.first
+custom_args = ARGV[1..-1].join(" ")
+
+connector_args = <<-EOS
+  --connector   src/#{connector_name}/connector.rb
+  --logo        src/#{connector_name}/logo.png
+  --description src/#{connector_name}/description.md
+EOS
+
+command = <<-EOS
+  bundle exec workato push #{api.toplevel_folder_id} #{connector_args} #{custom_args}
+EOS
+
+puts "Running #{command}"
+
+system(command)
