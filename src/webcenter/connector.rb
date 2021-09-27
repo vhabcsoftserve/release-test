@@ -1,5 +1,5 @@
 {
-  title: "Star Wars 2",
+  title: "Example Connector 2",
 
   # API key authentication example. See more examples at https://docs.workato.com/developing-connectors/sdk/guides/authentication.html
   connection: {
