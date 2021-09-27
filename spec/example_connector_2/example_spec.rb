@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-RSpec.describe 'Mediabeacon', :vcr do
+RSpec.describe 'Webcenter', :vcr do
 
   # Spec describes the most commons blocks of an connector. Remove describes that you don't need.
   # Learn more: https://docs.workato.com/developing-connectors/sdk/cli/reference/rspec-commands.html
 
-  let(:connector) { Workato::Connector::Sdk::Connector.from_file('src/mediabeacon/connector.rb', settings) }
+  let(:connector) { Workato::Connector::Sdk::Connector.from_file('src/example_connector_2/connector.rb', settings) }
   let(:settings) { Workato::Connector::Sdk::Settings.from_default_file }
 
   it { expect(connector).to be_present }
