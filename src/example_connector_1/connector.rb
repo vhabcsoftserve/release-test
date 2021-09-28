@@ -1,3 +1,6 @@
+#
+# some customer changes for v1.3.1.1
+
 {
   title: "Example Connector 1",
 
