@@ -1,3 +1,5 @@
+#
+# customer changes
 {
   title: "Example Connector 1",
 
